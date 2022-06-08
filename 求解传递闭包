@@ -1,0 +1,258 @@
+#include <iostream>
+#include <ctime>
+#include <iomanip>
+#include <windows.h>
+using namespace std;
+#define MAX 20
+void menu(void)
+{
+    cout << setw(10) << left << "生成相邻矩阵:" << 1 << endl;
+    cout << setw(10) << left << "迭代运算传递闭包:" << 2 << endl;
+    cout << setw(10) << left << "遍历迭代方法闭包:" << 3 << endl;
+    cout << setw(10) << left << "WarShall算法求传递闭包:" << 4 << endl;
+    cout << setw(10) << left << "遍历WarShall算法闭包:" << 5 << endl;
+    cout << setw(10) << left << "比较两种方法运算结果:" << 6 <<endl;
+    cout << setw(10) << left <<"清除矩阵:" << 7 << endl;
+    cout << setw(10) << left <<"结束程序:" << 8 << endl;
+}
+//模拟稀疏矩阵
+#if 0
+int** init_set(void)
+{
+    srand(time(0));
+    int** p = new int* [MAX];//表示某集合
+    for(int i = 0;i < MAX;++i)
+    {
+        p[i] = new int[MAX];
+    }
+    for (int i = 0;i < MAX;++i)
+    {
+        for(int j = 0;j < MAX;++j)
+        {
+            int temp = (rand() % 100) - 50;
+            p[i][j] = temp;
+        }
+    }
+    //模拟稀疏矩阵，表示二元关系
+    int** temp = new int* [MAX];
+    for(int i = 0;i < MAX;++i)
+    {
+        temp[i] = new int[MAX];
+    }
+    for(int s = 0;s < MAX;++s)
+    {
+        for(int i = 0;i < MAX;++i)
+        {
+            int index = 0;
+            for(int j = 0;j < MAX;++j)
+            {
+                index = p[i][j] * p[j][i];
+            }
+            if(index > 0)
+            {
+                temp[s][i] = 1;
+            }
+        }
+    }
+    return temp ;
+}
+#endif
+int** init_set(void)
+{
+    srand(time(0));
+    int** p = new int* [MAX];//
+    for(int i = 0;i < MAX;++i)
+    {
+        p[i] = new int[MAX];
+    }
+    //模拟相邻矩阵
+    for(int i = 0; i < MAX;++i)
+    {
+        for(int j = 0;j < MAX;++j)
+        {
+            //int index = rand() % 2;
+            p[i][j] = rand() % 2;
+//            if(p[i][j] == 0)
+//            {
+//                p[i][j] += index;
+//            }
+        }
+    }
+    return p ;
+}
+void copy(int** des,int** sorc)//1.目标数组，2.原数组
+{
+    for(int i = 0;i < MAX;++i)
+    {
+        for(int j =0;j < MAX;++j)
+        {
+            des[i][j] = sorc[i][j];
+        }
+    }
+}
+//迭代算法求闭包
+int** iterate_set(int **p)
+{
+    int** temp = new int* [MAX];//保存最终结果
+    for(int i = 0;i < MAX;++i)
+    {
+        temp[i] = new int[MAX];
+    }
+    int** temp2 = new int* [MAX];//保存临时数据
+    for(int i = 0;i < MAX;++i)
+    {
+        temp2[i] = new int[MAX];
+    }
+    copy(temp2,p);
+    copy(temp,p);
+    for(int x = 0;x < MAX;++x)
+    {
+        for(int s = 0;s < MAX;++s)
+        {
+            for(int i = 0;i < MAX ;++i)
+            {
+                int index = 0;
+                for(int j = 0;j < MAX;++j)
+                {
+                    index += p[i][j] * temp2[j][i];
+                }
+                temp2[s][i] = index;
+                if(temp[s][i] | temp2[s][i] | p[s][i])
+                {
+                    temp[s][i] = 1;
+                }
+            }
+        }
+    }
+
+    return temp;
+}
+//warshall算法求闭包
+int** warshall_set(int **p)
+{
+    int** temp = new int* [MAX];//保存最终结果
+    for(int i = 0;i < MAX;++i)
+    {
+        temp[i] = new int[MAX];
+    }
+    copy(temp,p);
+    for (int i = 0;i < MAX;i++)
+    {
+        for (int j = 0;j < MAX;j++)
+        {
+            if (temp[j][i] != 0)
+            {
+                for (int x = 0;x < MAX;x++)
+                {
+                    temp[j][x] = temp[j][x] | temp[i][x];
+                }
+            }
+        }
+    }
+    return temp;
+}
+//遍历集合
+void print_set(int **p)
+{
+    for(int i = 0;i < MAX;++i)
+    {
+        for(int j = 0;j < MAX;++j)
+        {
+            cout << setw(5) << left << p[i][j] <<' ';
+        }
+        cout << endl;
+    }
+}
+//比较集合
+int compare_set(int **p1,int **p2)
+{
+    for(int i = 0;i < MAX;++i)
+    {
+        for(int j = 0;j < MAX;++j)
+        {
+            if(p1[i][j] != p2[i][j])
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+//释放空间
+void clear_set(int **p)
+{
+    for(int i = 0;i < MAX;++i)
+    {
+        delete [] p[i];
+    }
+    delete [] p;
+    return;
+}
+int main()
+{
+    int** A;
+    //print_set(A);
+    int** s1;//保存迭代算法闭包
+    int** s2;//保存warshall算法闭包
+    int index;//用来保存操作
+    menu();
+    while(1)
+    {
+        cout << "请进行操作:" << endl;
+        cin >> index;
+        if(index == 1)
+        {
+            A = init_set();//获取A集合
+        }
+        else if(index == 2)
+        {
+            s1 = iterate_set(A);
+        }
+        else if(index == 3)
+        {
+            print_set(s1);
+        }
+        else if(index == 4)
+        {
+            s2 = warshall_set(A);
+        }
+        else if(index == 5)
+        {
+            print_set(s2);
+        }
+        else if(index == 6)
+        {
+            if(s1 == NULL)
+            {
+                cout << "未用迭代方法生成闭包" << endl;
+                continue;
+            }
+            else if(s2 == NULL)
+            {
+                cout << "未用WarShall方法生成闭包" << endl;
+                continue;
+            }
+            if(compare_set(s1,s2))
+            {
+                cout << "两种方法结果相同" << endl;
+            }
+            else
+            {
+                cout << "结果不同" << endl;
+            }
+        }
+        else if(index == 7)
+        {
+            clear_set(A);
+            clear_set(s1);
+            clear_set(s2);
+        }
+        else if(index == 8)
+        {
+            cout << "程序运行结束" << endl;
+            Sleep(1000);
+            break;
+        }
+    }
+    return 0;
+}
